@@ -1,6 +1,6 @@
 # RingServer — 局域网 HTTP 触发「强制响铃」APK
 
-一个极简 Android 应用：内置 NanoHTTPD 轻量 HTTP 服务器，监听 **8080** 端口；
+一个极简 Android 应用：内置 NanoHTTPD 轻量 HTTP 服务器，监听 **8089** 端口；
 收到 `GET/POST /ring` 请求后，用**闹钟音频流（STREAM_ALARM + USAGE_ALARM）**
 强制播放系统闹钟铃声 —— **静音 / 勿扰（闹钟除外）模式下也会响**，
 与系统闹钟、「查找手机」是同一机制。
@@ -13,7 +13,7 @@
 
 | 端点 | 方法 | 作用 |
 |---|---|---|
-| `/ring` | GET / POST | 强制响铃（循环播放，2 分钟后自动停止） |
+| `/ring` | GET / POST | 强制响铃（循环播放，1 分钟后自动停止） |
 | `/stop` | GET / POST | 立即停止响铃并恢复原音量 |
 | `/` | GET | 服务说明 |
 
@@ -47,13 +47,13 @@ gradlew.bat assembleDebug
 
 ## 安装与使用
 
-1. 安装 APK，打开应用，点「**启动服务**」（Android 13+ 会请求通知权限，请允许）；
-2. 记下界面显示的地址，形如 `http://192.168.x.x:8080/ring`；
+1. 安装 APK，打开应用即自动启动服务（Android 13+ 会请求通知权限，请允许）；
+2. 记下界面显示的地址，形如 `http://192.168.x.x:8089/ring`；
 3. 在**同一局域网**的另一台设备上触发：
    - 浏览器直接打开该地址，或
-   - `curl http://192.168.x.x:8080/ring`；
-4. 手机本地也可自测：`http://127.0.0.1:8080/ring`；
-5. 响铃循环播放，**2 分钟自动停止**；想提前停就访问 `/stop`，
+   - `curl http://192.168.x.x:8089/ring`；
+4. 手机本地也可自测：`http://127.0.0.1:8089/ring`；
+5. 响铃循环播放，**1 分钟自动停止**；想提前停就访问 `/stop`，
    或在应用里点「停止服务」。
 
 ## 强制响铃的原理（关键实现）
@@ -150,6 +150,7 @@ RingServer/
 
 ## 想改的东西
 
-- **改端口**：改 `RingServerService.PORT` 一处即可；
+- **改端口**：改 `RingServerService.PORT`，以及 `res/layout/activity_main.xml`
+  底部用法提示里的 `8089` 示例地址（仅文案）；
 - **改触发路径**：改 `RingHttpServer.serve()` 里的 URI 判断；
 - **改响铃时长**：改 `RingHelper.AUTO_STOP_MS`。

@@ -19,7 +19,7 @@ import java.io.IOException;
  */
 public class RingServerService extends Service {
 
-    public static final int PORT = 8080;
+    public static final int PORT = 8089;
 
     private static final String TAG = "RingServerService";
     private static final String CHANNEL_ID = "ring_server";

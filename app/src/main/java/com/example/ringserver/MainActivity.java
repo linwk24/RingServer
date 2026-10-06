@@ -101,10 +101,29 @@ public class MainActivity extends Activity {
 
         testButton.setOnClickListener(v -> {
             RingHelper.ring(this);
-            Toast.makeText(this, "本地测试：已在响铃（2 分钟后自动停）", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "本地测试：已在响铃（1 分钟后自动停）", Toast.LENGTH_SHORT).show();
         });
 
         refreshRootStatus();
+
+        // 打开应用即自动启动服务（无需手动点击「启动服务」）
+        autoStartService();
+    }
+
+    /** 应用进入前台时若服务未运行则自动拉起 */
+    private void autoStartService() {
+        if (RingServerService.isRunning()) {
+            refreshUi();
+            return;
+        }
+        try {
+            startForegroundService(new Intent(this, RingServerService.class));
+            // 服务在 onCreate 中异步绑定端口，稍后刷新状态
+            handler.postDelayed(this::refreshUi, 600);
+        } catch (Exception e) {
+            Toast.makeText(this, "服务自动启动失败：" + e.getMessage(), Toast.LENGTH_SHORT).show();
+            refreshUi();
+        }
     }
 
     @Override

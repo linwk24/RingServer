@@ -87,7 +87,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="用法：同一局域网内访问 http://手机IP:8080/ring 即强制响铃（闹钟音频流，静音/勿扰下仍会响）。触发后 2 分钟自动停止，也可访问 /stop 提前停止。"
+            android:text="用法：同一局域网内访问 http://手机IP:8089/ring 即强制响铃（闹钟音频流，静音/勿扰下仍会响）。触发后 1 分钟自动停止，也可访问 /stop 提前停止。"
             android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>

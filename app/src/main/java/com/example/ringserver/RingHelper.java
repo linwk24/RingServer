@@ -22,8 +22,8 @@ public final class RingHelper {
 
     private static final String TAG = "RingHelper";
 
-    /** 自动停止时长：防止无限响铃，2 分钟后自动停 */
-    private static final long AUTO_STOP_MS = 120_000L;
+    /** 自动停止时长：防止无限响铃，1 分钟后自动停 */
+    private static final long AUTO_STOP_MS = 60_000L;
 
     private static MediaPlayer player;
     private static AudioManager amRef;
