@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
     private EditText frpcPortEdit;
     private EditText frpcTokenEdit;
     private EditText frpcRemotePortEdit;
+    private EditText frpcNameEdit;
     private Button frpcApplyButton;
     private TextView frpcStatusText;
     private ScrollView frpcLogScroll;
@@ -78,6 +79,7 @@ public class MainActivity extends Activity {
         frpcPortEdit = findViewById(R.id.frpcPortEdit);
         frpcTokenEdit = findViewById(R.id.frpcTokenEdit);
         frpcRemotePortEdit = findViewById(R.id.frpcRemotePortEdit);
+        frpcNameEdit = findViewById(R.id.frpcNameEdit);
         frpcApplyButton = findViewById(R.id.frpcApplyButton);
         frpcStatusText = findViewById(R.id.frpcStatusText);
         frpcLogScroll = findViewById(R.id.frpcLogScroll);
@@ -215,6 +217,7 @@ public class MainActivity extends Activity {
             frpcPortEdit.setText(String.valueOf(Prefs.getFrpcServerPort(this)));
             frpcTokenEdit.setText(Prefs.getFrpcToken(this));
             frpcRemotePortEdit.setText(String.valueOf(Prefs.getFrpcRemotePort(this)));
+            frpcNameEdit.setText(Prefs.getFrpcProxyName(this));
             ringKeyEdit.setText(Prefs.getRingKey(this));
         } finally {
             loadingConfig = false;
@@ -228,6 +231,7 @@ public class MainActivity extends Activity {
                 parseInt(text(frpcPortEdit), Prefs.DEFAULT_FRPC_PORT),
                 text(frpcTokenEdit),
                 parseInt(text(frpcRemotePortEdit), Prefs.DEFAULT_REMOTE_PORT));
+        Prefs.setFrpcProxyName(this, text(frpcNameEdit));
     }
 
     /** 保存输入框内容（带校验），校验失败返回 false */
@@ -239,6 +243,7 @@ public class MainActivity extends Activity {
             return false;
         }
         Prefs.saveFrpc(this, text(frpcAddrEdit), serverPort, text(frpcTokenEdit), remotePort);
+        Prefs.setFrpcProxyName(this, text(frpcNameEdit));
         return true;
     }
 

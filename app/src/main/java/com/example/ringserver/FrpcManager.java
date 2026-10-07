@@ -172,7 +172,7 @@ final class FrpcManager {
         // 连不上 frps 时不要退出，持续重试
         sb.append("loginFailExit = false\n\n");
         sb.append("[[proxies]]\n");
-        sb.append("name = \"ringserver\"\n");
+        sb.append("name = \"").append(escape(sanitizeProxyName(Prefs.getFrpcProxyName(ctx)))).append("\"\n");
         sb.append("type = \"tcp\"\n");
         sb.append("localIP = \"127.0.0.1\"\n");
         sb.append("localPort = ").append(RingServerService.PORT).append("\n");
@@ -187,6 +187,25 @@ final class FrpcManager {
     /** TOML 基本字符串转义 */
     private static String escape(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    /**
+     * frp 对 proxy name 有字符限制（只认字母数字、下划线、短横线，且不能含 '.'），
+     * 这里把非法字符统一换成下划线，兜底空名。
+     */
+    private static String sanitizeProxyName(String raw) {
+        if (raw == null) {
+            return "ringserver";
+        }
+        StringBuilder sb = new StringBuilder(raw.length());
+        for (int i = 0; i < raw.length(); i++) {
+            char ch = raw.charAt(i);
+            boolean ok = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
+                    || (ch >= '0' && ch <= '9') || ch == '_' || ch == '-';
+            sb.append(ok ? ch : '_');
+        }
+        String s = sb.toString();
+        return s.isEmpty() ? "ringserver" : s;
     }
 
     private static void startLogReader(final Process p) {

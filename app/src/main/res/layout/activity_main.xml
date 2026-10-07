@@ -166,6 +166,28 @@
             android:inputType="number"
             android:maxLines="1" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="代理名称（同一 frps 下每台设备必须不同）"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/frpcNameEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="留空自动生成 ring-xxxxxx"
+            android:inputType="text"
+            android:maxLines="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="多台设备共用同一个 frps 时，代理名称和公网远程端口都得各自独立，否则后连上来的设备会被拒（proxy already exists / port already used）。"
+            android:textSize="12sp" />
+
         <!-- ================= /ring 访问密钥 ================= -->
 
         <TextView
