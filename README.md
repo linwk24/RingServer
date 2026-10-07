@@ -1,4 +1,4 @@
-# RingServer — 局域网 HTTP 触发「强制响铃」APK
+# RingServer — HTTP 触发「强制响铃」APK（局域网 / 公网）
 
 一个极简 Android 应用：内置 NanoHTTPD 轻量 HTTP 服务器，监听 **8089** 端口；
 收到 `GET/POST /ring` 请求后，用**闹钟音频流（STREAM_ALARM + USAGE_ALARM）**
@@ -6,6 +6,9 @@
 与系统闹钟、「查找手机」是同一机制。
 
 典型用途：找不到手机时从电脑 / 另一台设备触发响铃。
+
+自带 **frpc**（内网穿透客户端），配置后可从**公网**触发 —— 需要你自备一台
+有公网 IP 的 frps 服务器，详见「公网访问」一节。
 
 ---
 
@@ -17,8 +20,12 @@
 | `/stop` | GET / POST | 立即停止响铃并恢复原音量 |
 | `/` | GET | 服务说明 |
 
-应用内界面：启动 / 停止服务、显示局域网触发地址、本地测试响铃，
-以及 **Root 模式**（防杀后台）和**开机自启**两个开关。
+> 在设置里填了「访问密钥」后，`/ring` 与 `/stop` 必须带 key：
+> `/ring?key=xxxx`，或请求头 `X-Ring-Key: xxxx`；密钥留空则不校验。
+
+应用内界面：启动 / 停止服务、显示局域网与公网触发地址、本地测试响铃、
+**公网穿透（frpc）**配置区与实时日志，以及 **Root 模式**（防杀后台）和
+**开机自启**两个开关。
 
 ## 环境要求
 
@@ -55,6 +62,56 @@ gradlew.bat assembleDebug
 4. 手机本地也可自测：`http://127.0.0.1:8089/ring`；
 5. 响铃循环播放，**1 分钟自动停止**；想提前停就访问 `/stop`，
    或在应用里点「停止服务」。
+
+## 公网访问（frpc 内网穿透）
+
+应用内置了 **frpc v0.71.0（官方 `android_arm64` 构建）**，把本地 8089 端口通过
+frp 反向隧道映射到你自己的 frps 服务器上，从而实现公网触发。
+
+### 1. 先在服务器上跑 frps
+
+一台有公网 IP 的机器（VPS），装好 frp 后新建 `frps.toml`：
+
+```toml
+bindPort = 7000
+auth.token = "换成你自己的随机串"
+```
+
+启动 `./frps -c frps.toml`，并放行防火墙的 **7000** 端口，以及下面要用的
+**远程端口**（如 18089）。
+
+### 2. 在应用的「公网访问（frpc 内网穿透）」区填写
+
+| 字段 | 说明 |
+|---|---|
+| 启用公网穿透 | 总开关 |
+| frps 服务器地址 | 你 VPS 的 IP 或域名 |
+| frps 端口 | 对应 `bindPort`，默认 7000 |
+| frps token | 对应 `auth.token`，没配可留空 |
+| 公网远程端口 | 你在 frps 上要开放的端口，如 18089 |
+
+点「**保存并应用**」。下方会实时显示 frpc 状态与日志，连上后能看到
+`start proxy success` 之类的输出。
+
+### 3. 公网触发
+
+```
+http://<VPS_IP>:<远程端口>/ring?key=<你的访问密钥>
+```
+
+> ⚠️ 公网暴露务必设置「访问密钥」，否则任何扫到端口的人都能让你的手机一直响。
+
+### 实现要点（踩坑记录）
+
+| 问题 | 解法 |
+|---|---|
+| Android 10+ 禁止 app 执行自己 home 目录下的文件（W^X / SELinux） | 把 frpc 以 `libfrpc.so` 的名义放进 `jniLibs/arm64-v8a/`，系统安装时会解压到 **native library 目录**并授予执行权限，该目录允许 `execve` |
+| 要让系统真的去解压 | `app/build.gradle` 里 `packaging { jniLibs { useLegacyPackaging = true } }`（即 `extractNativeLibs=true`） |
+| AGP 误把 frpc 当 `.so` 去 strip | `keepDebugSymbols += '**/libfrpc.so'` |
+| Go 二进制在 Android 上解析不了域名 | 用 frp 官方的 **`android_arm64`** 构建（走 bionic 解析器），而不是 `linux_arm64` |
+| 子进程输出把管道写满导致卡死 | `ProcessBuilder.redirectErrorStream(true)` + 独立线程持续读取 |
+
+frpc 的配置文件由应用自动生成于 `filesDir/frpc.toml`，**请勿手改**（每次应用配置都会被覆盖）。
 
 ## 强制响铃的原理（关键实现）
 
@@ -119,7 +176,14 @@ gradlew.bat assembleDebug
 - 部分国产 ROM（MIUI / ColorOS / EMUI 等）会杀后台：请在系统设置中允许
   自启动、关闭省电限制；触发后通知栏应能看到常驻通知；
 - 服务器监听 `0.0.0.0`，**同一局域网内任何设备都能触发**，请只在可信
-  网络（家庭 / 办公 Wi-Fi）中使用；如需限制，可在路由器或手机防火墙层面处理。
+  网络（家庭 / 办公 Wi-Fi）中使用；如需限制，可在路由器或手机防火墙层面处理；
+- **仅支持 arm64（64 位 ARM）设备**：APK 里打包的 frpc 只有 `arm64-v8a` 一份，
+  32 位老机型安装会报 `INSTALL_FAILED_NO_MATCHING_ABIS`；
+- **公网穿透必须配「访问密钥」**：`/ring` 一旦暴露到公网，没有密钥就等于
+  给陌生人一个「随时让你手机响到没电」的开关；
+- frpc 是**子进程**，其生命周期跟随前台服务：服务停了 frpc 也停；Root 模式
+  关闭时被系统杀进程，穿透会一起断（Root 模式看门狗可自动拉起）；
+- 本机（x86_64 构建环境）无法实测 frpc 链路，首次上机请在应用内看 frpc 日志确认。
 
 ## 项目结构
 
@@ -132,12 +196,16 @@ RingServer/
     └── src/main/
         ├── AndroidManifest.xml
         ├── java/com/example/ringserver/
-        │   ├── MainActivity.java               # 简单 UI：启停服务 + 地址 + Root/开机自启开关
-        │   ├── RingServerService.java          # 前台服务，持有 HTTP 服务器
-        │   ├── RingHttpServer.java             # NanoHTTPD 子类，处理 /ring /stop
+        │   ├── MainActivity.java               # 简单 UI：启停服务 + 地址 + frpc 配置 + Root/开机自启开关
+        │   ├── RingServerService.java          # 前台服务，持有 HTTP 服务器与 frpc 生命周期
+        │   ├── RingHttpServer.java             # NanoHTTPD 子类，处理 /ring /stop（含密钥鉴权）
         │   ├── RingHelper.java                 # 强制响铃核心（STREAM_ALARM）
+        │   ├── FrpcManager.java                # frpc 子进程：生成 frpc.toml、启停、日志
+        │   ├── Prefs.java                      # frpc 连接参数 + 访问密钥的存取
         │   ├── RootHelper.java                 # Root 模式：su 白名单 + OOM + 看门狗 + 开机脚本
         │   └── BootReceiver.java               # 开机自启（BOOT_COMPLETED 广播）
+        ├── jniLibs/arm64-v8a/
+        │   └── libfrpc.so                      # frpc v0.71.0 android_arm64 可执行文件（伪装成 .so）
         ├── assets/
         │   ├── ringserver_watchdog.sh          # 看门狗守护脚本（root 运行）
         │   └── ringserver_boot.sh              # Magisk 开机自启脚本
@@ -154,3 +222,6 @@ RingServer/
   底部用法提示里的 `8089` 示例地址（仅文案）；
 - **改触发路径**：改 `RingHttpServer.serve()` 里的 URI 判断；
 - **改响铃时长**：改 `RingHelper.AUTO_STOP_MS`。
+- **换 frpc 版本**：下载 frp 官方 `frp_x.y.z_android_arm64`，把其中的 `frpc`
+  覆盖到 `app/src/main/jniLibs/arm64-v8a/libfrpc.so`（文件名必须保持
+  `lib*.so`，否则打不进 APK）；APK 体积会随版本变化，当前约 6.3 MB。

@@ -10,8 +10,18 @@ android {
         applicationId "com.example.ringserver"
         minSdk 26
         targetSdk 34
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
+    }
+
+    packaging {
+        jniLibs {
+            // 关键：必须让系统在安装时把 libfrpc.so 解压到 native library 目录，
+            // 那边是允许 execve 的（Android 10+ 禁止执行 app home 目录下的文件）。
+            useLegacyPackaging = true
+            // 别让 AGP 去 strip 这个可执行文件
+            keepDebugSymbols += '**/libfrpc.so'
+        }
     }
 
     compileOptions {

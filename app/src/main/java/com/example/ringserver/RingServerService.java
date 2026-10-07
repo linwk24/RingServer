@@ -21,6 +21,9 @@ public class RingServerService extends Service {
 
     public static final int PORT = 8089;
 
+    /** 界面改了 frpc 配置后，用这个 action 让服务重载穿透配置 */
+    public static final String ACTION_RELOAD_FRPC = "com.example.ringserver.action.RELOAD_FRPC";
+
     private static final String TAG = "RingServerService";
     private static final String CHANNEL_ID = "ring_server";
     private static final int NOTIFICATION_ID = 1;
@@ -50,10 +53,16 @@ public class RingServerService extends Service {
 
         // Root 模式开启时确保看门狗在跑（进程被杀后自动拉起本服务）
         RootHelper.ensureWatchdog(this);
+
+        // 按配置拉起公网穿透（frpc）
+        FrpcManager.sync(this);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null && ACTION_RELOAD_FRPC.equals(intent.getAction())) {
+            FrpcManager.sync(this);
+        }
         // 进程被杀后尝试重启服务
         return START_STICKY;
     }
@@ -61,6 +70,7 @@ public class RingServerService extends Service {
     @Override
     public void onDestroy() {
         running = false;
+        FrpcManager.stop();
         if (server != null) {
             server.stop();
             server = null;

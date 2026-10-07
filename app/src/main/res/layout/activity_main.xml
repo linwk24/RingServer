@@ -83,11 +83,166 @@
             android:layout_marginTop="12dp"
             android:text="本地测试响铃" />
 
+        <!-- ================= 公网访问（frpc） ================= -->
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="#DDDDDD" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="公网访问（frpc 内网穿透）"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <Switch
+            android:id="@+id/frpcSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="启用公网穿透" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="frps 服务器地址（IP 或域名）"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/frpcAddrEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="例如 1.2.3.4 或 frp.example.com"
+            android:inputType="textUri"
+            android:maxLines="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="frps 端口（bindPort，默认 7000）"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/frpcPortEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="7000"
+            android:inputType="number"
+            android:maxLines="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="frps token（没配可留空）"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/frpcTokenEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="auth.token"
+            android:inputType="text"
+            android:maxLines="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="公网远程端口（frps 上对外开放的端口，如 18089）"
+            android:textSize="13sp" />
+
+        <EditText
+            android:id="@+id/frpcRemotePortEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="18089"
+            android:inputType="number"
+            android:maxLines="1" />
+
+        <!-- ================= /ring 访问密钥 ================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="访问密钥（建议设置）"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="填了就要求 /ring 与 /stop 带 key 参数；留空则不校验（局域网自用可留空）"
+            android:textSize="12sp" />
+
+        <EditText
+            android:id="@+id/ringKeyEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:hint="留空 = 不鉴权"
+            android:inputType="text"
+            android:maxLines="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="公网触发地址形如：http://服务器IP:远程端口/ring?key=你的密钥"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/frpcApplyButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="保存并应用" />
+
+        <TextView
+            android:id="@+id/frpcStatusText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="frpc：未启用"
+            android:textSize="13sp" />
+
+        <ScrollView
+            android:id="@+id/frpcLogScroll"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="4dp"
+            android:background="#11000000"
+            android:padding="6dp">
+
+            <TextView
+                android:id="@+id/frpcLogText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="（frpc 日志）"
+                android:textSize="10sp"
+                android:typeface="monospace" />
+        </ScrollView>
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="用法：同一局域网内访问 http://手机IP:8089/ring 即强制响铃（闹钟音频流，静音/勿扰下仍会响）。触发后 1 分钟自动停止，也可访问 /stop 提前停止。"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="公网访问：需自备 frps 服务器，本应用内置 frpc（arm64）。启用后公网地址为 http://frps地址:远程端口/ring"
             android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>
